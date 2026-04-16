@@ -1,0 +1,9 @@
+/* Custom overrides loaded after the built CSS bundle */
+
+/* Make main layouts (dashboard pages) span full width */
+.max-w-4xl,
+.max-w-6xl,
+.max-w-7xl {
+  max-width: 100% !important;
+}
+

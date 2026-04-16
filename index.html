@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/biometrics/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DTR Biometrics</title>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('openImport') !== '1') return;
+
+        var clicked = false;
+        var maxAttempts = 60;
+        var attempts = 0;
+
+        function looksLikeImportButton(el) {
+          if (!el || typeof el.textContent !== 'string') return false;
+          var label = el.textContent.trim().toLowerCase();
+          return (
+            label === 'import' ||
+            label === 'import data' ||
+            label.indexOf('import') !== -1
+          );
+        }
+
+        function tryOpenImport() {
+          if (clicked) return;
+          attempts += 1;
+
+          var candidates = document.querySelectorAll('button, a, [role="button"]');
+          for (var i = 0; i < candidates.length; i += 1) {
+            var el = candidates[i];
+            if (looksLikeImportButton(el)) {
+              clicked = true;
+              el.click();
+              params.delete('openImport');
+              var nextQuery = params.toString();
+              var nextUrl = window.location.pathname + (nextQuery ? '?' + nextQuery : '') + window.location.hash;
+              window.history.replaceState({}, '', nextUrl);
+              return;
+            }
+          }
+
+          if (attempts < maxAttempts) {
+            window.setTimeout(tryOpenImport, 250);
+          }
+        }
+
+        window.addEventListener('load', function () {
+          window.setTimeout(tryOpenImport, 250);
+        });
+      })();
+    </script>
+    <script>
+      (function () {
+        function ensureStyles() {
+          if (document.getElementById('export-modal-styles')) return;
+          var style = document.createElement('style');
+          style.id = 'export-modal-styles';
+          style.textContent =
+            '.export-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;display:none;}' +
+            '.export-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,92vw);background:#fff;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:9999;display:none;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}' +
+            '.export-modal header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #e9ecef;}' +
+            '.export-modal h3{margin:0;font-size:18px;font-weight:650;}' +
+            '.export-modal .close{border:0;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:#333;padding:6px 10px;border-radius:10px;}' +
+            '.export-modal .close:hover{background:#f1f3f5;}' +
+            '.export-modal .body{padding:16px 18px;}' +
+            '.export-modal label{display:block;font-size:13px;font-weight:600;margin:10px 0 6px;color:#343a40;}' +
+            '.export-modal select,.export-modal input{width:100%;padding:10px 12px;border:1px solid #ced4da;border-radius:10px;font-size:14px;}' +
+            '.export-modal .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}' +
+            '.export-modal .actions{display:flex;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid #e9ecef;}' +
+            '.export-modal .btn{border:0;border-radius:10px;padding:10px 14px;font-weight:650;cursor:pointer;}' +
+            '.export-modal .btn.secondary{background:#e9ecef;color:#111;}' +
+            '.export-modal .btn.primary{background:#1864ab;color:#fff;}' +
+            '.export-modal .hint{margin-top:10px;font-size:12px;color:#6c757d;}';
+          document.head.appendChild(style);
+        }
+
+        function createModal() {
+          ensureStyles();
+          if (document.getElementById('export-modal')) return;
+
+          var backdrop = document.createElement('div');
+          backdrop.className = 'export-modal-backdrop';
+          backdrop.id = 'export-modal-backdrop';
+
+          var modal = document.createElement('div');
+          modal.className = 'export-modal';
+          modal.id = 'export-modal';
+          modal.innerHTML =
+            '<header>' +
+            '  <h3>Export to Excel</h3>' +
+            '  <button class="close" type="button" aria-label="Close">&times;</button>' +
+            '</header>' +
+            '<div class="body">' +
+            '  <label for="export-filter">Select Export Filter</label>' +
+            '  <select id="export-filter">' +
+            '    <option value="all">All Records</option>' +
+            '    <option value="employee">By Employee ID/Name</option>' +
+            '    <option value="monthly">By Month</option>' +
+            '    <option value="range">By Date Range</option>' +
+            '  </select>' +
+            '  <div id="export-employee-wrap" style="display:none;">' +
+            '    <label for="export-employee">Employee</label>' +
+            '    <input id="export-employee" type="text" placeholder="e.g. 1025 or Juan" />' +
+            '  </div>' +
+            '  <div id="export-month-wrap" style="display:none;">' +
+            '    <label for="export-month">Month</label>' +
+            '    <input id="export-month" type="month" />' +
+            '  </div>' +
+            '  <div id="export-range-wrap" style="display:none;">' +
+            '    <label>Date Range</label>' +
+            '    <div class="row">' +
+            '      <input id="export-from" type="date" />' +
+            '      <input id="export-to" type="date" />' +
+            '    </div>' +
+            '  </div>' +
+            '  <div class="hint">Magda-download ito ng CSV file na openable sa Excel.</div>' +
+            '</div>' +
+            '<div class="actions">' +
+            '  <button class="btn secondary" type="button" id="export-cancel">Cancel</button>' +
+            '  <button class="btn primary" type="button" id="export-download">Download</button>' +
+            '</div>';
+
+          document.body.appendChild(backdrop);
+          document.body.appendChild(modal);
+
+          function close() {
+            backdrop.style.display = 'none';
+            modal.style.display = 'none';
+          }
+          function open() {
+            backdrop.style.display = 'block';
+            modal.style.display = 'block';
+          }
+          function toggleFields() {
+            var v = document.getElementById('export-filter').value;
+            document.getElementById('export-employee-wrap').style.display = v === 'employee' ? 'block' : 'none';
+            document.getElementById('export-month-wrap').style.display = v === 'monthly' ? 'block' : 'none';
+            document.getElementById('export-range-wrap').style.display = v === 'range' ? 'block' : 'none';
+          }
+
+          backdrop.addEventListener('click', close);
+          modal.querySelector('.close').addEventListener('click', close);
+          document.getElementById('export-cancel').addEventListener('click', close);
+          document.getElementById('export-filter').addEventListener('change', toggleFields);
+
+          document.getElementById('export-download').addEventListener('click', function () {
+            var v = document.getElementById('export-filter').value;
+            var qs = new URLSearchParams();
+            qs.set('filter', v);
+
+            if (v === 'employee') {
+              var emp = (document.getElementById('export-employee').value || '').trim();
+              if (!emp) {
+                alert('Please enter an Employee ID/Name.');
+                return;
+              }
+              qs.set('employee', emp);
+            } else if (v === 'monthly') {
+              var m = (document.getElementById('export-month').value || '').trim();
+              if (!m) {
+                alert('Please select a month.');
+                return;
+              }
+              qs.set('month', m);
+            } else if (v === 'range') {
+              var f = (document.getElementById('export-from').value || '').trim();
+              var t = (document.getElementById('export-to').value || '').trim();
+              if (!f || !t) {
+                alert('Please select both From and To dates.');
+                return;
+              }
+              qs.set('from', f);
+              qs.set('to', t);
+            }
+
+            // Trigger file download (same-origin, session cookies included)
+            window.location.href = '/biometrics/api/attendance_export.php?' + qs.toString();
+            close();
+          });
+
+          toggleFields();
+          window.__openExportModal = open;
+        }
+
+        function looksLikeExportButton(el) {
+          if (!el || typeof el.textContent !== 'string') return false;
+          var label = el.textContent.trim().toLowerCase();
+          return label === 'export to excel' || (label.indexOf('export') !== -1 && label.indexOf('excel') !== -1);
+        }
+
+        function bindExportButton() {
+          createModal();
+          var candidates = document.querySelectorAll('button, a, [role="button"]');
+          for (var i = 0; i < candidates.length; i += 1) {
+            var el = candidates[i];
+            if (!looksLikeExportButton(el)) continue;
+            if (el.__exportModalBound) return;
+            el.__exportModalBound = true;
+            el.addEventListener('click', function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              if (typeof window.__openExportModal === 'function') window.__openExportModal();
+            });
+            return;
+          }
+        }
+
+        window.addEventListener('load', function () {
+          var attempts = 0;
+          var maxAttempts = 80;
+          function tick() {
+            attempts += 1;
+            try {
+              bindExportButton();
+            } catch (e) {}
+            if (attempts < maxAttempts) window.setTimeout(tick, 250);
+          }
+          window.setTimeout(tick, 250);
+        });
+      })();
+    </script>
+    <script type="module" crossorigin src="/biometrics/assets/index-46a51222.js"></script>
+    <link rel="stylesheet" href="/biometrics/assets/index-bbf242ae.css">
+    <link rel="stylesheet" href="/biometrics/assets/overrides.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    
+  </body>
+</html>

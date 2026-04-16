@@ -1,7 +1,7 @@
 <?php
 ob_start();
 // export.php
-include 'db.php';
+require_once __DIR__ . '/../db.php';
 include 'header.php';
 
 ?>

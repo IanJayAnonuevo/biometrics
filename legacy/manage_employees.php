@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+require_once __DIR__ . '/../db.php';
 include 'header.php';
 ?>
 <!-- Make sure Bootstrap JS is included -->

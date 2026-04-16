@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /biometrics/
+
+  # Microsoft OAuth redirect lands on /login (SPA route).
+  # If it includes an OAuth response, route it to the PHP callback handler.
+  RewriteCond %{REQUEST_URI} ^/biometrics/login/?$ [NC]
+  RewriteCond %{QUERY_STRING} (^|&)(code|error|state)= [NC]
+  RewriteRule ^login/?$ api/auth_microsoft_callback.php [L,QSA]
+
+  # If the request is for an existing file or directory, serve it directly.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Otherwise, serve the React SPA entrypoint.
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Prefer the SPA entrypoint for the web UI
+DirectoryIndex index.html
+
