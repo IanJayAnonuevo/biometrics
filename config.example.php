@@ -8,8 +8,8 @@ define('DB_PASS', '');
 define('DB_NAME', 'biometrics');
 define('PORT', 3306);
 
-define('ADMIN_EMAIL', 'admin@example.com');
-define('ADMIN_PASSWORD', 'change_this_password');
+define('ADMIN_EMAIL', '');
+define('ADMIN_PASSWORD', '');
 
 define('MS_TENANT_ID', 'common');
 define('MS_CLIENT_ID', '');

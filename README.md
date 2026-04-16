@@ -27,10 +27,15 @@ Place this project inside your XAMPP `htdocs` folder:
 5. Create your local secret file:
    - Copy `.env.example` to `.env`
    - Fill in your real values (DB, admin login, Microsoft OAuth secret)
+   - `ADMIN_EMAIL` and `ADMIN_PASSWORD` are required for initial local admin login
 
 PowerShell copy command:
 
 `Copy-Item .env.example .env`
+
+CMD copy command:
+
+`copy .env.example .env`
 
 ## Run the App (Development)
 

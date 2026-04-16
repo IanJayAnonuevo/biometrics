@@ -63,9 +63,8 @@ define('DB_NAME', env_value('DB_NAME', 'biometrics'));
 define('PORT', (int)env_value('PORT', '3306'));
 
 // Default admin login for the web UI/API.
-// Change these values in .env before deploying anywhere public.
-define('ADMIN_EMAIL', env_value('ADMIN_EMAIL', 'admin@aral-abroad.com'));
-define('ADMIN_PASSWORD', env_value('ADMIN_PASSWORD', 'admin123'));
+define('ADMIN_EMAIL', env_value('ADMIN_EMAIL', ''));
+define('ADMIN_PASSWORD', env_value('ADMIN_PASSWORD', ''));
 
 // Microsoft OAuth (Azure App Registration).
 // Keep empty to disable Microsoft login.
